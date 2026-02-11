@@ -13,7 +13,6 @@ load_dotenv()
 import json
 import psycopg2
 
-
 def get_db():
     conn = psycopg2.connect(os.getenv("DATABASE_URL"))
     return conn, conn.cursor()
@@ -382,6 +381,77 @@ def request_callback():
     print("📞 NEW CALLBACK REQUEST:", phone, email)
     return redirect(request.referrer)
 
+@app.route("/register-business", methods=["GET", "POST"])
+def register_business():
+    if request.method == "POST":
+        conn, cursor = get_db()
+        cursor.execute("""
+            INSERT INTO business_registrations
+            (business_name, business_type, services, owner_name, email, phone, city)
+            VALUES (%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            request.form["business_name"],
+            request.form["business_type"],
+            ", ".join(request.form.getlist("services")),
+            request.form["owner_name"],
+            request.form["email"],
+            request.form["phone"],
+            request.form["city"]
+        ))
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return redirect("/business-success")
+
+    return render_template("register_business.html")
+
+
+@app.route("/admin/businesses")
+def admin_businesses():
+    if not session.get("admin_logged_in"):
+        return redirect("/login")
+
+    conn, cur = get_db()
+
+    cur.execute("""
+        SELECT id, business_name, business_type, services,
+               owner_name, email, phone, city, status
+        FROM business_registrations
+        ORDER BY created_at DESC
+    """)
+    businesses = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template("admin_businesses.html", businesses=businesses)
+
+@app.route("/admin/update-status", methods=["POST"])
+def update_business_status():
+    if not session.get("admin_logged_in"):
+        return redirect("/login")
+
+    business_id = request.form["id"]
+    status = request.form["status"]
+
+    conn, cur = get_db()
+
+    cur.execute("""
+        UPDATE business_registrations
+        SET status = %s
+        WHERE id = %s
+    """, (status, business_id))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return redirect("/admin/businesses")
+
+@app.route("/business-success")
+def business_success():
+    return render_template("business_success.html")
 
 
 @app.context_processor
