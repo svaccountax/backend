@@ -1,0 +1,33 @@
+
+{
+  "company": {
+    "name": "TaxEase",
+    "about": "TaxEase is an online tax filing platform that helps individuals and small businesses file their taxes easily and securely."
+  },
+
+  "services": {
+    "itr": "We provide end-to-end Income Tax Return filing with expert review.",
+    "gst": "We help businesses with GST registration and return filing."
+  },
+
+  "process": {
+    "tax_filing": "Users upload documents, we pre-fill data, experts review, and users submit returns."
+  },
+
+  "policies": {
+    "privacy": "We do not share customer data with third parties.",
+    "security": "All user data is encrypted and stored securely."
+  },
+
+  "contact": {
+    "email": "support@taxease.in",
+    "phone": "+91 90000 00000",
+    "hours": "Mon–Fri, 9 AM to 6 PM"
+  },
+
+  "pricing": {
+  "itr": "ITR filing starts from ₹999 depending on complexity.",
+  "gst": "GST filing starts from ₹1,499 per return."
+  }
+
+}
