@@ -174,7 +174,7 @@ app.register_blueprint(admin_bp)
 
 
 
-from Backend.otp import otp_bp
+from otp import otp_bp
 app.register_blueprint(otp_bp)
 
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
