@@ -1,5 +1,5 @@
 
-from flask import Blueprint, session, redirect, render_template, request
+from flask import Blueprint, session, redirect, render_template, request, current_app, abort
 import requests
 import random
 import os
@@ -10,12 +10,19 @@ otp_bp = Blueprint("otp", __name__)
 
 OTP_EXPIRY = 300  # 5 minutes
 
+
+def validate_csrf():
+    token = request.form.get("csrf_token", "")
+    if not token or token != session.get("_csrf_token"):
+        return False
+    return True
+
 def send_sms_otp(phone, otp):
     url = "https://www.fast2sms.com/dev/bulk"
 
     payload = {
         "sender_id": "TXTIND",
-        "message": f"Your TaxAssist Admin OTP is {otp}. Valid for 5 minutes.",
+        "message": f"Your SV Accountax Crew Admin OTP is {otp}. Valid for 5 minutes.",
         "language": "english",
         "route": "q",
         "numbers": phone
@@ -61,8 +68,9 @@ def verify_otp():
         return redirect("/login")
 
     if request.method == "POST":
+        if not validate_csrf():
+            abort(403)
         if "otp_time" not in session or "admin_otp" not in session:
-            session.clear()
             return redirect("/login")
 
         user_otp = request.form["otp"]
@@ -75,14 +83,12 @@ def verify_otp():
         if hashed_input == session.get("admin_otp"):
             session.pop("admin_otp", None)
             session.pop("otp_time", None)
-            session.pop("admin_temp", None)
+            session["role"] = "admin"
             session["admin_logged_in"] = True
             session["is_admin"] = True
-            session["user"] = {
-                "email": "admin@taxassist.com",
-                "name": "Admin"
-           }
-            return redirect("/admin/callbacks")
+            session["_boot_id"] = current_app.config["SESSION_BOOT_ID"]
+            session["_last_seen"] = int(time.time())
+            return redirect("/")
 
         return "Invalid OTP"
 
